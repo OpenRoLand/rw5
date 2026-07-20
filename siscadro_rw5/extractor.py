@@ -1,0 +1,274 @@
+"""Canonical survey-point extractor for RW5 files.
+
+:class:`Rw5Extractor` is the adapter registered under the
+``siscadro_survey.extractors`` entry-point group. It maps the raw records
+produced by :mod:`siscadro_rw5.parser` onto ``siscadro-survey``'s canonical
+:class:`~siscadro_survey.records.SurveyPointRecord` model; canonical-model
+decisions live only here, never in the low-level parser.
+"""
+
+from __future__ import annotations
+
+import datetime
+import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from siscadro_survey import services
+from siscadro_survey.records import (
+    ExtractionResult,
+    IssueSeverity,
+    ParseIssue,
+    SourceFormat,
+    SurveyPointRecord,
+)
+
+from siscadro_rw5.models import Rw5BasePoint, Rw5GpsPoint
+from siscadro_rw5.parser import Rw5Parser
+
+logger = logging.getLogger(__name__)
+
+__all__ = ["Rw5Extractor"]
+
+
+class Rw5Extractor:
+    """Extracts canonical survey points from one RW5 file.
+
+    Attributes:
+        format_name: Stable format identifier, ``"rw5"``.
+        extensions: File extensions this extractor claims.
+    """
+
+    format_name = "rw5"
+    extensions = (".rw5",)
+
+    def can_read(self, path: Path) -> bool:
+        """Return whether ``path``'s extension is a recognized RW5 file."""
+        return Path(path).suffix.lower() in self.extensions
+
+    def extract(self, path: Path) -> ExtractionResult:
+        """Parse and canonicalize one RW5 file.
+
+        Args:
+            path: Path of the RW5 file to read.
+
+        Returns:
+            The canonical records, source metadata, and diagnostics
+            extracted from ``path``.
+        """
+        resolved = Path(path)
+        parser = Rw5Parser().parse_file(resolved)
+        source = services.build_source_metadata(
+            resolved,
+            SourceFormat.RW5,
+            parser_metadata=_job_metadata(parser),
+        )
+
+        issues: List[ParseIssue] = list(parser.issues)
+        records: List[SurveyPointRecord] = []
+        for base in parser.base_points:
+            for gps in base.points:
+                record, issue = _build_record(gps, base, resolved)
+                if record is not None:
+                    records.append(record)
+                if issue is not None:
+                    issues.append(issue)
+
+        return ExtractionResult(source=source, records=records, issues=issues)
+
+
+def _job_metadata(parser: Rw5Parser) -> Dict[str, Any]:
+    """Collect job/instrument-level parser metadata for ``SourceMetadata``."""
+    return _drop_none(
+        {
+            "locale": parser.locale,
+            "job_name": parser.job_name,
+            "job_datetime": parser.job_datetime,
+            "survce_version": parser.survce_version,
+            "scale_point": parser.scale_point,
+            "equipment": parser.equipment,
+            "coordinate_system": parser.coordinate_system,
+            "localization_file": parser.localization_file,
+            "geoid_file": parser.geoid_file,
+            "grid_adjustment_file": parser.grid_adjustment_file,
+            "gps_scale": parser.gps_scale,
+            "rtk_method": parser.rtk_method,
+            "rtk_device": parser.rtk_device,
+            "rtk_network": parser.rtk_network,
+            "crd": parser.crd,
+            "units": parser.units,
+            "scale_factor": parser.scale_factor,
+            "earth_curvature_on": parser.earth_curvature_on,
+            "edm_offset": parser.edm_offset,
+            "antenna_type": parser.antenna_type,
+            "antenna_radius": parser.antenna_radius,
+            "antenna_slant_height": parser.antenna_slant_height,
+            "antenna_l1_offset": parser.antenna_l1_offset,
+            "antenna_l2_offset": parser.antenna_l2_offset,
+            "antenna_description": parser.antenna_description,
+        }
+    )
+
+
+def _build_record(
+    gps: Rw5GpsPoint, base: Rw5BasePoint, source_path: Path
+) -> Tuple[Optional[SurveyPointRecord], Optional[ParseIssue]]:
+    """Build one canonical record from a raw GPS observation.
+
+    Args:
+        gps: The raw observation to canonicalize.
+        base: The base station ``gps`` was observed from.
+        source_path: Path of the file being extracted, for diagnostics.
+
+    Returns:
+        A tuple of the built record (or ``None`` when unusable) and an
+        optional diagnostic explaining why it was skipped.
+    """
+    if gps.north is None or gps.east is None or gps.height is None:
+        return None, ParseIssue(
+            source_path=source_path,
+            severity=IssueSeverity.WARNING,
+            message=(
+                "point %r is missing projected north/east/height "
+                "coordinates; skipping" % (gps.name,)
+            ),
+            record_id=_record_id(gps),
+        )
+
+    try:
+        record = SurveyPointRecord(
+            north=gps.north,
+            east=gps.east,
+            height=gps.height,
+            name=str(gps.name) if gps.name is not None else None,
+            code=gps.comment or gps.code,
+            latitude=gps.latitude,
+            longitude=gps.longitude,
+            wgs84_altitude=gps.elevation,
+            observed_at_utc=gps.start_time_utc,
+            method=gps.method,
+            status=gps.status,
+            satellite_count=_first_not_none(gps.sat_count, gps.nr_of_sat_avg),
+            hrms=_first_not_none(gps.hsdv, gps.hrms_avg),
+            vrms=_first_not_none(gps.vsdv, gps.vrms_avg),
+            hdop=_first_not_none(gps.hdop, gps.hdop_avg),
+            vdop=_first_not_none(gps.vdop, gps.vdop_avg),
+            pdop=_first_not_none(gps.pdop, gps.pdop_avg),
+            tdop=gps.tdop,
+            gdop=gps.gdop,
+            antenna_measurement_method=gps.entered_antenna_method,
+            entered_antenna_height=gps.entered_antenna_height,
+            true_antenna_height=gps.true_antenna_height,
+            base_id=base.base_id or _to_str(base.number),
+            base_latitude=base.latitude,
+            base_longitude=base.longitude,
+            base_height=base.elevation,
+            source_record_id=_record_id(gps),
+            source_values=_source_values(gps, base),
+        )
+    except ValueError as exc:
+        return None, ParseIssue(
+            source_path=source_path,
+            severity=IssueSeverity.WARNING,
+            message="point %r has an invalid coordinate: %s"
+            % (
+                gps.name,
+                exc,
+            ),
+            record_id=_record_id(gps),
+        )
+    return record, None
+
+
+def _source_values(gps: Rw5GpsPoint, base: Rw5BasePoint) -> Dict[str, Any]:
+    """Collect the RW5-specific values that have no canonical column."""
+    values: Dict[str, Any] = {
+        "comment": gps.comment,
+        "gs_code": gps.code,
+        "moment": _isoformat(gps.moment),
+        "local_time": _isoformat(gps.local_time),
+        "end_time_utc": _isoformat(gps.end_time_utc),
+        "north_avg": gps.north_avg,
+        "north_max": gps.north_max,
+        "north_min": gps.north_min,
+        "north_sd": gps.north_sd,
+        "east_avg": gps.east_avg,
+        "east_max": gps.east_max,
+        "east_min": gps.east_min,
+        "east_sd": gps.east_sd,
+        "elev_avg": gps.elev_avg,
+        "elev_max": gps.elev_max,
+        "elev_min": gps.elev_min,
+        "elev_sd": gps.elev_sd,
+        "hrms_max": gps.hrms_max,
+        "hrms_min": gps.hrms_min,
+        "hrms_sd": gps.hrms_sd,
+        "vrms_max": gps.vrms_max,
+        "vrms_min": gps.vrms_min,
+        "vrms_sd": gps.vrms_sd,
+        "nr_of_sat_avg": gps.nr_of_sat_avg,
+        "nr_of_sat_max": gps.nr_of_sat_max,
+        "nr_of_sat_min": gps.nr_of_sat_min,
+        "fixed_readings": gps.fixed_readings,
+        "float_readings": gps.float_readings,
+        "dgps_readings": gps.dgps_readings,
+        "valid_readings": gps.valid_readings,
+        "hdop_avg": gps.hdop_avg,
+        "hdop_max": gps.hdop_max,
+        "hdop_min": gps.hdop_min,
+        "vdop_avg": gps.vdop_avg,
+        "vdop_max": gps.vdop_max,
+        "vdop_min": gps.vdop_min,
+        "pdop_avg": gps.pdop_avg,
+        "pdop_max": gps.pdop_max,
+        "pdop_min": gps.pdop_min,
+        "delta_x": gps.delta_x,
+        "delta_y": gps.delta_y,
+        "delta_z": gps.delta_z,
+        "g2_velocity_x": gps.g2_velocity_x,
+        "g2_velocity_y": gps.g2_velocity_y,
+        "g2_velocity_z": gps.g2_velocity_z,
+        "g3_xy": gps.g3_xy,
+        "g3_xz": gps.g3_xz,
+        "g3_yz": gps.g3_yz,
+        "off_azimuth": gps.off_azimuth,
+        "off_distance": gps.off_distance,
+        "off_delta_z": gps.off_delta_z,
+        "off_horizontal_distances": gps.off_horizontal_distances or None,
+        "base_name": base.name,
+        "base_number": base.number,
+        "base_unknown_ag": base.unknown_ag,
+        "base_unknown_pa": base.unknown_pa,
+    }
+    if gps.is_stakeout_point():
+        values["stakeout"] = dict(gps.stakeout_data())
+        values["stakeout_source"] = gps.stk_source
+    return _drop_none(values)
+
+
+def _record_id(gps: Rw5GpsPoint) -> Optional[str]:
+    """Return a stable diagnostic identifier for one observation."""
+    return str(gps.name) if gps.name is not None else None
+
+
+def _to_str(value: Any) -> Optional[str]:
+    """Convert a possibly-``None`` value to ``str``."""
+    return None if value is None else str(value)
+
+
+def _isoformat(value: Optional[datetime.datetime]) -> Optional[str]:
+    """Convert a possibly-``None`` datetime to an ISO-8601 string."""
+    return None if value is None else value.isoformat()
+
+
+def _first_not_none(*values: Any) -> Any:
+    """Return the first argument that is not ``None``."""
+    for value in values:
+        if value is not None:
+            return value
+    return None
+
+
+def _drop_none(values: Dict[str, Any]) -> Dict[str, Any]:
+    """Return a copy of ``values`` without its ``None``-valued entries."""
+    return {key: value for key, value in values.items() if value is not None}

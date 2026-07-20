@@ -1,0 +1,17 @@
+include README.md
+include LICENSE
+prune ./.github/*
+exclude ./.coveragerc
+exclude ./.editorconfig
+exclude ./.flake8
+exclude ./.gitignore
+exclude ./.pre-commit-config.yaml
+exclude ./Makefile
+exclude ./.vscode/*
+exclude ./tests/*
+exclude ./playground/*
+exclude ./build/*
+exclude ./dist/*
+exclude ./htmlcov/*
+exclude ./.cache/*
+exclude ./.mypy_cache/*
