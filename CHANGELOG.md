@@ -25,4 +25,17 @@
 
 ### Changed
 
+- Replaced length-based slicing (`line[len(prefix):]`) with `str.removeprefix()`
+  when stripping note-line prefixes, avoiding a Black/Flake8 `E203` conflict
+  without disabling the check.
+- Introduced a dedicated `_to_int()` helper for purely numeric fields
+  (`sat_count`, `nr_of_sat_avg/min/max`, `valid_readings`, `fixed_readings`,
+  `float_readings`, `dgps_readings`) instead of the alphanumeric-tolerant
+  `_to_int_or_str()`, matching their `Optional[int]` model typing and
+  satisfying `mypy`.
+
 ### Fixed
+
+- Fixed a `[tools.black]` typo in `pyproject.toml` (should be `[tool.black]`)
+  that silently made `make lint`/`make delint` fall back to Black's default
+  88-column line length instead of the repository's 80-column standard.
