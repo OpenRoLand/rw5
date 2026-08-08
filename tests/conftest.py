@@ -36,3 +36,39 @@ def romanian_minimal_path() -> Path:
 def quality_and_offsets_path() -> Path:
     """Return the path of the offsets/quality/stakeout fixture."""
     return FIXTURES_DIR / "quality_and_offsets.rw5"
+
+
+@pytest.fixture
+def commented_gs_gt_path() -> Path:
+    """Return the path of the ``--GS``/``--GT`` commented-record fixture."""
+    return FIXTURES_DIR / "commented_gs_gt.rw5"
+
+
+@pytest.fixture
+def stored_points_path() -> Path:
+    """Return the path of the ``SP`` stored-point fixture."""
+    return FIXTURES_DIR / "stored_points.rw5"
+
+
+@pytest.fixture
+def south_cube_ep_bl_gs_path() -> Path:
+    """Return the path of the South/Cube ``EP``/``BL``/``GS`` fixture."""
+    return FIXTURES_DIR / "south_cube_ep_bl_gs.rw5"
+
+
+@pytest.fixture
+def base_configuration_path() -> Path:
+    """Return the SurvCE base-configuration + HDOP Min:/Max: fixture."""
+    return FIXTURES_DIR / "base_configuration.rw5"
+
+
+@pytest.fixture
+def offset_local_time_path() -> Path:
+    """Return the offset-shot fixture with ``DT``/``TM`` but no ``G0``/``GT``."""
+    return FIXTURES_DIR / "offset_local_time.rw5"
+
+
+@pytest.fixture
+def offset_g0_moment_path() -> Path:
+    """Return the offset-shot fixture with ``G0`` moment but no ``GT``."""
+    return FIXTURES_DIR / "offset_g0_moment.rw5"

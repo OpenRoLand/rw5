@@ -20,8 +20,15 @@ ROMANIAN_LABELS: Mapping[str, str] = MappingProxyType(
     {
         "%Y/%m/%d %H:%M:%S": "%m/%d/%Y %H:%M:%S",
         "Adjustments": "Adjustments",
+        "AGE Avg": "AGE Avg",
+        "AUTO Readings": "AUTO Readings",
+        "Averaged Points": "Averaged Points",
+        "Antenna": "Antenna",
         "Antenna Type": "Antenna Type",
+        "Attribute": "Attribute",
         "CRD": "CRD",
+        "Date (creation)": "Date (creation)",
+        "Date (last modification)": "Date (last modification)",
         "Device": "Device",
         "Eas Avg": "Eas Avg",
         "Eas Min": "Eas Min",
@@ -29,26 +36,54 @@ ROMANIAN_LABELS: Mapping[str, str] = MappingProxyType(
         "Elv Min": "Elv Min",
         "Entered HR": "Entered HR",
         "Entered Rover HR": "Entered Rover HR",
+        "Entered Base HR": "Entered Base HR",
+        "ERMS Avg": "ERMS Avg",
         "Equipment": "Echipament",
         "Fixed Readings": "Fixed Readings",
         "Float Readings": "Float Readings",
         "DGPS Readings": "DGPS Readings",
         "Geoid Separation File": "Fisierul de separare al geoidului",
+        "GNSS Profile Tolerance PP": "GNSS Profile Tolerance PP",
+        "GNSS Profile Tolerance RT": "GNSS Profile Tolerance RT",
+        "GNSS Statistics PP": "GNSS Statistics PP",
+        "GNSS Statistics RT": "GNSS Statistics RT",
         "GPS Scale": "Scara GPS",
+        "Gnss Device": "Gnss Device",
         "Grid Adjustment File": "Grid Adjustment File",
         "HDOP Avg": "HDOP Avg",
+        "Instrument Model": "Instrument Model",
+        "Instrument Selected": "Instrument Selected",
+        "Antenna height": "Antenna height",
         "HRMS Avg": "HRMS Avg",
+        "HSIG Avg": "HSIG Avg",
+        "HSDV Avg": "HSDV Avg",
         "Localization File": "Fisierul de localizare",
+        "Localization Type": "Localization Type",
         "Network": "Network",
+        "Reference System": "Reference System",
         "Nor Avg": "Nor Avg",
         "Nor Min": "Nor Min",
+        "NRMS Avg": "NRMS Avg",
         "Number of Satellites Avg": "Number of Satellites Avg",
         "PDOP Avg": "PDOP Avg",
+        "PP Time": "PP Time",
+        "Point Used": "Point Used",
         "RTK Method": "RTK Method",
+        "Station": "Station",
+        "StdDev E": "StdDev E",
+        "StdDev N": "StdDev N",
+        "StdDev Z": "StdDev Z",
+        "Translate": "Translate",
+        "TS Angles": "TS Angles",
+        "TS Scale": "TS Scale",
+        "EDM Mode": "EDM Mode",
+        "P.C. mm Applied": "P.C. mm Applied",
         "User Defined": "Definit de utilizator",
         "Valid Readings": "Valid Readings",
         "VDOP Avg": "VDOP Avg",
         "VRMS Avg": "VRMS Avg",
+        "VSIG Avg": "VSIG Avg",
+        "VSDV Avg": "VSDV Avg",
     }
 )
 
@@ -74,12 +109,31 @@ ENGLISH_LOCALE_MARKERS: tuple = (
     "Base Configuration",
     "Gnss Device",
     "RTK Method",
+    "TDS RW5",
+    "X-change",
+    "Date (creation)",
+    "Instrument Model",
+    "Antenna height",
 )
 
 #: Free-text note prefixes recognized before locale-specific labels apply.
 NOTE_SURVCE_VERSION = "Stonex SurvCE Version "
 NOTE_SURVCE_VERSION_NO_SPACE = "SurvCE Version "
+NOTE_SURVX = "SurvX "
+NOTE_STONEX_CUBE_A = "Stonex Cube-a "
+NOTE_TDS_RW5 = "TDS RW5"
+NOTE_GPS_SURVEY = "GPS Survey "
 NOTE_SCALE_POINT = "Scale Point"
+NOTE_BASE_CONFIGURATION = "Base Configuration by Reading GPS Position"
+NOTE_BASE_CONFIGURATION_STATE_PLANE = (
+    "Base Configuration by Entering State Plane Coordinates"
+)
+NOTE_BASE_CONFIGURATION_PREVIOUSLY_SURVEYED = (
+    "Base Configuration by Previously Surveyed"
+)
+NOTE_INITIALIZATION_TIME = "Initialization time "
+NOTE_GNSS_POSITION_ADJUSTMENT = "GNSS Position Adjustment"
+NOTE_GPS_REFERENCE_STATION = "GPS Reference station"
 
 #: Maximum number of leading lines inspected while auto-detecting locale
 #: before falling back to :data:`DEFAULT_LOCALE`.

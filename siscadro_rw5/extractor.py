@@ -67,6 +67,9 @@ class Rw5Extractor:
         issues: List[ParseIssue] = list(parser.issues)
         records: List[SurveyPointRecord] = []
         for base in parser.base_points:
+            base_record = _build_base_record(base, resolved)
+            if base_record is not None:
+                records.append(base_record)
             for gps in base.points:
                 record, issue = _build_record(gps, base, resolved)
                 if record is not None:
@@ -110,6 +113,93 @@ def _job_metadata(parser: Rw5Parser) -> Dict[str, Any]:
     )
 
 
+def _is_base_station_observation(
+    gps: Rw5GpsPoint, base: Rw5BasePoint
+) -> bool:
+    """Return whether ``gps`` is a base/VRS echo, not a rover survey point.
+
+    SurvCE often writes a geographic-only ``GPS`` line whose ``PN`` is the
+    RTK network mountpoint (also stored as :attr:`Rw5BasePoint.name`) or
+    the ``BP`` point number, with no following projected ``GS``. Those
+    lines must not become canonical survey points or missing-NEH warnings.
+
+    Args:
+        gps: Candidate observation.
+        base: Base station group the observation belongs to.
+
+    Returns:
+        ``True`` when the observation should be ignored silently.
+    """
+    if gps.name is None:
+        return False
+    name = str(gps.name)
+    # Job-header stakeout / empty network placeholders are not survey points.
+    if name == "?" and (
+        gps.north is None or gps.east is None or gps.height is None
+    ):
+        return True
+    base_name = base.name
+    if (
+        base_name is not None
+        and base_name != "?"
+        and name == str(base_name)
+    ):
+        return True
+    if base.number is not None and name == str(base.number):
+        # Same PN as BP without projected coords is a base echo.
+        return gps.north is None or gps.east is None or gps.height is None
+    return False
+
+
+def _build_base_record(
+    base: Rw5BasePoint, source_path: Path
+) -> Optional[SurveyPointRecord]:
+    """Build a canonical ``kind=base`` record from a projected base setup.
+
+    Args:
+        base: Parsed base station.
+        source_path: Path of the file being extracted.
+
+    Returns:
+        A survey point when ``base`` has projected NEH, otherwise ``None``.
+    """
+    if base.north is None or base.east is None or base.height is None:
+        return None
+
+    name = str(base.number) if base.number is not None else None
+    source_values = _drop_none(
+        {
+            "base_name": base.name,
+            "base_number": base.number,
+            "configured_by_gps_position": (
+                True if base.configured_by_gps_position else None
+            ),
+            "entered_base_hr": base.entered_base_hr,
+            "base_unknown_ag": base.unknown_ag,
+            "base_unknown_pa": base.unknown_pa,
+            "local_time": _isoformat(base.local_time),
+        }
+    )
+    return SurveyPointRecord(
+        north=base.north,
+        east=base.east,
+        height=base.height,
+        name=name,
+        latitude=base.latitude,
+        longitude=base.longitude,
+        wgs84_altitude=base.elevation,
+        observed_at_local=base.local_time,
+        kind="base",
+        entered_antenna_height=base.entered_base_hr,
+        base_id=base.base_id or _to_str(base.number),
+        base_latitude=base.latitude,
+        base_longitude=base.longitude,
+        base_height=base.elevation,
+        source_record_id=name,
+        source_values=source_values,
+    )
+
+
 def _build_record(
     gps: Rw5GpsPoint, base: Rw5BasePoint, source_path: Path
 ) -> Tuple[Optional[SurveyPointRecord], Optional[ParseIssue]]:
@@ -124,6 +214,9 @@ def _build_record(
         A tuple of the built record (or ``None`` when unusable) and an
         optional diagnostic explaining why it was skipped.
     """
+    if _is_base_station_observation(gps, base):
+        return None, None
+
     if gps.north is None or gps.east is None or gps.height is None:
         return None, ParseIssue(
             source_path=source_path,
@@ -135,7 +228,12 @@ def _build_record(
             record_id=_record_id(gps),
         )
 
+    source_values, stakeout_issue = _source_values(gps, base, source_path)
+
     try:
+        # SP imports set collection_kind="imported"; measured GPS/GS
+        # occupations are canonical GPS field observations.
+        kind = gps.collection_kind or "gps"
         record = SurveyPointRecord(
             north=gps.north,
             east=gps.east,
@@ -145,9 +243,11 @@ def _build_record(
             latitude=gps.latitude,
             longitude=gps.longitude,
             wgs84_altitude=gps.elevation,
-            observed_at_utc=gps.start_time_utc,
+            observed_at_utc=_observed_at_utc(gps),
+            observed_at_local=gps.local_time,
             method=gps.method,
             status=gps.status,
+            kind=kind,
             satellite_count=_first_not_none(gps.sat_count, gps.nr_of_sat_avg),
             hrms=_first_not_none(gps.hsdv, gps.hrms_avg),
             vrms=_first_not_none(gps.vsdv, gps.vrms_avg),
@@ -164,7 +264,7 @@ def _build_record(
             base_longitude=base.longitude,
             base_height=base.elevation,
             source_record_id=_record_id(gps),
-            source_values=_source_values(gps, base),
+            source_values=source_values,
         )
     except ValueError as exc:
         return None, ParseIssue(
@@ -177,11 +277,19 @@ def _build_record(
             ),
             record_id=_record_id(gps),
         )
-    return record, None
+    return record, stakeout_issue
 
 
-def _source_values(gps: Rw5GpsPoint, base: Rw5BasePoint) -> Dict[str, Any]:
-    """Collect the RW5-specific values that have no canonical column."""
+def _source_values(
+    gps: Rw5GpsPoint,
+    base: Rw5BasePoint,
+    source_path: Path,
+) -> Tuple[Dict[str, Any], Optional[ParseIssue]]:
+    """Collect the RW5-specific values that have no canonical column.
+
+    Stakeout label/value mismatches become a warning and omit the paired
+    ``stakeout`` map; the observation itself is still imported.
+    """
     values: Dict[str, Any] = {
         "comment": gps.comment,
         "gs_code": gps.code,
@@ -240,15 +348,62 @@ def _source_values(gps: Rw5GpsPoint, base: Rw5BasePoint) -> Dict[str, Any]:
         "base_unknown_ag": base.unknown_ag,
         "base_unknown_pa": base.unknown_pa,
     }
+    stakeout_issue: Optional[ParseIssue] = None
     if gps.is_stakeout_point():
-        values["stakeout"] = dict(gps.stakeout_data())
         values["stakeout_source"] = gps.stk_source
-    return _drop_none(values)
+        try:
+            values["stakeout"] = dict(gps.stakeout_data())
+        except ValueError as exc:
+            logger.debug(
+                "point %r stakeout data skipped: %s",
+                gps.name,
+                exc,
+                exc_info=True,
+            )
+            values["stakeout_labels"] = list(gps.stk_labels or [])
+            values["stakeout_values"] = list(gps.stk_values or [])
+            stakeout_issue = ParseIssue(
+                source_path=source_path,
+                severity=IssueSeverity.WARNING,
+                message="point %r stakeout data skipped: %s"
+                % (gps.name, exc),
+                record_id=_record_id(gps),
+            )
+    return _drop_none(values), stakeout_issue
 
 
 def _record_id(gps: Rw5GpsPoint) -> Optional[str]:
     """Return a stable diagnostic identifier for one observation."""
     return str(gps.name) if gps.name is not None else None
+
+
+def _observed_at_utc(gps: Rw5GpsPoint) -> Optional[datetime.datetime]:
+    """Pick the best UTC observation time for one GPS record.
+
+    Preference order:
+
+    1. ``GT`` ``start_time_utc`` (authoritative GPS-week UTC)
+    2. ``G0`` ``moment`` (receiver occupation start; treat naive as UTC)
+    3. ``--DT``/``--TM`` ``local_time`` (controller wall clock; last resort)
+    """
+    if gps.start_time_utc is not None:
+        return gps.start_time_utc
+    if gps.moment is not None:
+        return _as_utc(gps.moment)
+    if gps.local_time is not None:
+        return _as_utc(gps.local_time)
+    return None
+
+
+def _as_utc(
+    dt: Optional[datetime.datetime],
+) -> Optional[datetime.datetime]:
+    """Return *dt* as an aware UTC datetime, normalizing naive values."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=datetime.timezone.utc)
+    return dt.astimezone(datetime.timezone.utc)
 
 
 def _to_str(value: Any) -> Optional[str]:

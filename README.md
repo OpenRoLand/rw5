@@ -25,11 +25,13 @@ This package provides three layers of API surface:
 
 RW5 files are line-oriented and comma-separated. Every line starts with a
 two-or-three-letter record code (`GPS`, `G0`, `GS`, `G1`/`G2`/`G3`, `GT`, ...)
-followed by fields tagged with a two-character sign (for example `LA46.5` is
-the tag `LA` with value `46.5`). Free-text metadata (equipment name, antenna
-type, and similar) is instead written as `--`-prefixed note lines whose
-label text depends on the file's locale, which is why the parser's
-label-driven dispatch supports both English and Romanian SurvCE installs.
+followed by fields tagged with a two-character sign (for example
+`LA46.35192` is the tag `LA` with SurvCE packed `DD.MMSSsssss` value
+`46.35192`, decoded to decimal degrees). Free-text metadata (equipment
+name, antenna type, and similar) is instead written as `--`-prefixed note
+lines whose label text depends on the file's locale, which is why the
+parser's label-driven dispatch supports both English and Romanian SurvCE
+installs.
 The locale is auto-detected from the first lines of the file, or can be
 supplied explicitly to `Rw5Parser(locale="en" | "ro")`.
 

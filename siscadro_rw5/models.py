@@ -36,20 +36,24 @@ class Rw5GpsPoint:
 
     Attributes:
         kind: Always :attr:`RecordKind.GPS_POINT`.
-        name: Point name/number, from the ``GPS``/``GS`` ``PN`` tag.
-        comment: Point comment/code, from the ``GPS`` ``--`` tag.
-        latitude: Raw geographic latitude reported by the ``GPS`` record,
-            in degrees.
-        longitude: Raw geographic longitude reported by the ``GPS``
-            record, in degrees.
+        name: Point name/number, from the ``GPS``/``GS``/``SP`` ``PN``
+            tag.
+        comment: Point comment/code, from the ``GPS`` or ``SP`` ``--``
+            tag.
+        latitude: Geographic latitude reported by the ``GPS``/``BP``/``EP``
+            record, in decimal degrees (SurvCE ``DD.MMSSsssss`` decoded).
+        longitude: Geographic longitude reported by the ``GPS``/``BP``/``EP``
+            record, in decimal degrees (SurvCE ``DD.MMSSsssss`` decoded).
         elevation: Raw ellipsoidal height reported by the ``GPS`` record,
             in metres.
-        north: Projected north coordinate, from the ``GS`` record.
-        east: Projected east coordinate, from the ``GS`` record.
-        height: Projected elevation, from the ``GS`` record.
-        code: Point code, from the ``GS`` ``--`` tag. Usually equal to
-            ``comment``; kept separate because the two records are not
-            guaranteed to agree.
+        north: Projected north coordinate, from the ``GS`` or ``SP``
+            record.
+        east: Projected east coordinate, from the ``GS`` or ``SP``
+            record.
+        height: Projected elevation, from the ``GS`` or ``SP`` record.
+        code: Point code, from the ``GS`` or ``SP`` ``--`` tag. Usually
+            equal to ``comment``; kept separate because the two records
+            are not guaranteed to agree.
         moment: Local observation moment, from the ``G0`` record.
         local_time: Naive local timestamp assembled from ``DT``/``TM``
             note lines, when present.
@@ -85,12 +89,24 @@ class Rw5GpsPoint:
         vrms_max: Maximum vertical RMS observed.
         vrms_min: Minimum vertical RMS observed.
         vrms_sd: Standard deviation of the vertical RMS.
+        age_avg: Averaged GNSS age of differential, when present.
+        age_min: Minimum GNSS age of differential observed.
+        age_max: Maximum GNSS age of differential observed.
+        nrms_avg: Averaged north RMS from ``NRMS Avg`` notes.
+        nrms_max: Maximum north RMS observed.
+        nrms_min: Minimum north RMS observed.
+        nrms_sd: Standard deviation of the north RMS.
+        erms_avg: Averaged east RMS from ``ERMS Avg`` notes.
+        erms_max: Maximum east RMS observed.
+        erms_min: Minimum east RMS observed.
+        erms_sd: Standard deviation of the east RMS.
         nr_of_sat_avg: Averaged satellite count over the occupation.
         nr_of_sat_max: Maximum satellite count observed.
         nr_of_sat_min: Minimum satellite count observed.
         fixed_readings: Number of fixed readings taken.
         float_readings: Number of float readings taken.
         dgps_readings: Number of DGPS readings taken.
+        auto_readings: Number of autonomous readings taken.
         valid_readings: Number of valid readings taken.
         hdop_avg: Averaged HDOP over the occupation.
         hdop_max: Maximum HDOP observed.
@@ -125,9 +141,23 @@ class Rw5GpsPoint:
         start_time_utc: Aware UTC start time of the GPS observation
             window, decoded from the ``GT`` record's GPS week/seconds.
         end_time_utc: Aware UTC end time of the GPS observation window.
-        stk_source: Stakeout source design file, from a ``CTSS1`` note.
+        stk_source: Stakeout source design file, from a ``CTSSn`` note.
         stk_labels: Stakeout column labels, from ``CTSD0`` note lines.
         stk_values: Stakeout column values, from ``CTSD`` note lines.
+        stk_ctsd_wrapped: Internal parser flag: the last ``CTSD`` fragment
+            ended with SurvCE's trailing-comma wrap marker.
+        gnss_statistics_rt: South/Cube real-time GNSS statistics note.
+        gnss_statistics_pp: South/Cube post-processed GNSS statistics note.
+        pp_time: South/Cube post-processed time window note.
+        antenna_note: South/Cube ``Antenna:`` note (distinct from job
+            ``Antenna Type``).
+        attribute_note: SurvCE GIS ``Attribute:`` note (parcel/owner text).
+        instrument_selected: South/Cube instrument profile note.
+        gnss_profile_tolerance_rt: South/Cube real-time profile tolerance
+            note.
+        gnss_profile_tolerance_pp: South/Cube post-processed profile
+            tolerance note.
+        initialization_time: South/Cube initialization-time note.
         base: The :class:`Rw5BasePoint` this observation was taken from.
     """
 
@@ -150,6 +180,8 @@ class Rw5GpsPoint:
 
     method: Optional[str] = None
     status: Optional[str] = None
+    #: Canonical collection kind for non-measured SP imports (``imported``).
+    collection_kind: Optional[str] = None
     sat_count: Optional[int] = None
 
     hsdv: Optional[float] = None
@@ -182,6 +214,18 @@ class Rw5GpsPoint:
     vrms_min: Optional[float] = None
     vrms_sd: Optional[float] = None
 
+    age_avg: Optional[float] = None
+    age_min: Optional[float] = None
+    age_max: Optional[float] = None
+    nrms_avg: Optional[float] = None
+    nrms_max: Optional[float] = None
+    nrms_min: Optional[float] = None
+    nrms_sd: Optional[float] = None
+    erms_avg: Optional[float] = None
+    erms_max: Optional[float] = None
+    erms_min: Optional[float] = None
+    erms_sd: Optional[float] = None
+
     nr_of_sat_avg: Optional[int] = None
     nr_of_sat_max: Optional[int] = None
     nr_of_sat_min: Optional[int] = None
@@ -189,6 +233,7 @@ class Rw5GpsPoint:
     fixed_readings: Optional[int] = None
     float_readings: Optional[int] = None
     dgps_readings: Optional[int] = None
+    auto_readings: Optional[int] = None
     valid_readings: Optional[int] = None
 
     hdop_avg: Optional[float] = None
@@ -228,6 +273,18 @@ class Rw5GpsPoint:
     stk_source: Optional[str] = None
     stk_labels: Optional[List[str]] = None
     stk_values: Optional[List[str]] = None
+    #: Whether the last ``CTSD`` fragment ended with SurvCE's wrap comma.
+    stk_ctsd_wrapped: bool = attrs.field(default=False, repr=False)
+
+    gnss_statistics_rt: Optional[str] = None
+    gnss_statistics_pp: Optional[str] = None
+    pp_time: Optional[str] = None
+    antenna_note: Optional[str] = None
+    attribute_note: Optional[str] = None
+    instrument_selected: Optional[str] = None
+    gnss_profile_tolerance_rt: Optional[str] = None
+    gnss_profile_tolerance_pp: Optional[str] = None
+    initialization_time: Optional[str] = None
 
     base: Optional["Rw5BasePoint"] = attrs.field(default=None, repr=False)
 
@@ -263,9 +320,25 @@ class Rw5BasePoint:
         kind: Always :attr:`RecordKind.BASE_POINT`.
         name: Base station name, usually the RTK network name.
         number: Base station point number, from the ``BP`` ``PN`` tag.
-        latitude: Base station latitude, in degrees.
-        longitude: Base station longitude, in degrees.
-        elevation: Base station elevation, in metres.
+        latitude: Base station latitude, in decimal degrees (SurvCE
+            ``DD.MMSSsssss`` decoded).
+        longitude: Base station longitude, in decimal degrees (SurvCE
+            ``DD.MMSSsssss`` decoded).
+        elevation: Base station elevation, in metres (``EL``, ``HT``, or
+            SurvCE ``ET`` on ``BP``).
+        north: Projected north from a base ``GS`` (often ``--GS`` with
+            ``--Base``), when present.
+        east: Projected east from a base ``GS``, when present.
+        height: Projected height from a base ``GS``, when present.
+        local_time: Local date/time from ``--DT``/``--TM`` when the base
+            was configured before any rover shot under this ``BP``.
+        configured_by_gps_position: Whether SurvCE wrote a base-configuration
+            note (``Reading GPS Position``, ``Entering State Plane
+            Coordinates``, or ``Previously Surveyed``).
+        point_used: Previously surveyed point name from ``--Point Used``,
+            when the base was configured from an existing survey point.
+        entered_base_hr: Antenna height from ``--Entered Base HR``, when
+            present.
         base_id: Base station identifier read at the rover, from the
             ``G0`` record's base-ID text.
         unknown_ag: Unlabeled ``AG`` value from the ``BP`` record.
@@ -280,8 +353,35 @@ class Rw5BasePoint:
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     elevation: Optional[float] = None
+    north: Optional[float] = None
+    east: Optional[float] = None
+    height: Optional[float] = None
+    local_time: Optional[datetime.datetime] = None
+    configured_by_gps_position: bool = False
+    point_used: Optional[str] = None
+    entered_base_hr: Optional[float] = None
     base_id: Optional[str] = None
     unknown_ag: Optional[str] = None
     unknown_pa: Optional[str] = None
 
     points: List[Rw5GpsPoint] = attrs.field(factory=list)
+
+
+@attrs.define
+class Rw5PointCodeNote:
+    """One free-text ``{PN}-{code}…`` note targeting a point by number.
+
+    SurvCE operators sometimes type notes like ``603-ST DRUM DREAPTA``
+    or ``605-ST-PRIMA-JOS`` as ``--`` lines. When the named point exists
+    in the same file the parser attaches the text to that point; otherwise
+    the note is kept as an orphan on the parser.
+
+    Attributes:
+        point_name: Target point number from the note prefix.
+        text: Remainder after ``{PN}-`` (feature code + description).
+        raw: Full note line without the ``--`` prefix.
+    """
+
+    point_name: str
+    text: str
+    raw: str
