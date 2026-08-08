@@ -1,4 +1,4 @@
-"""Tests for :mod:`siscadro_rw5.extractor` and the package-level API."""
+"""Tests for :mod:`openroland_rw5.extractor` and the package-level API."""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ from pathlib import Path
 
 import openpyxl
 import pytest
-from siscadro_survey.records import IssueSeverity, SourceFormat
+from openroland_survey.records import IssueSeverity, SourceFormat
 
-from siscadro_rw5 import export_to_database, export_to_xlsx, extract_points
-from siscadro_rw5.extractor import Rw5Extractor
+from openroland_rw5 import export_to_database, export_to_xlsx, extract_points
+from openroland_rw5.extractor import Rw5Extractor
 
 
 class TestCanRead:

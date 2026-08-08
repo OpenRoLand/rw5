@@ -1,20 +1,19 @@
 [project]
-name = "siscadro-rw5"
+name = "openroland-rw5"
 dynamic = ["version"]
 description = "RW5 (Trimble/Carlson/SurvCE) survey file parser and canonical extractor."
 authors = [{name = "Nicu Tofan", email = "nicu.tofan@gmail.com"}]
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: UNLICENSED License",
     "Operating System :: OS Independent",
-    "Private :: Do Not Upload",
 ]
 dependencies = [
     "attrs>=23.1,<25",
     "arrow>=1.2,<2",
-    "siscadro-survey",
+    "openroland-survey-core",
 ]
 
 
@@ -35,8 +34,8 @@ dev = [
 ]
 
 
-[project.entry-points."siscadro_survey.extractors"]
-rw5 = "siscadro_rw5.extractor:Rw5Extractor"
+[project.entry-points."openroland_survey.extractors"]
+rw5 = "openroland_rw5.extractor:Rw5Extractor"
 
 
 [build-system]
@@ -49,13 +48,13 @@ include-package-data = true
 
 
 [tool.setuptools.packages.find]
-include = ["siscadro_rw5*"]
+include = ["openroland_rw5*"]
 exclude = ["venv*", "playground*", "tests*"]
 
 
 [tool.setuptools_scm]
 fallback_version = "0.0.1-dev"
-write_to = "siscadro_rw5/__version__.py"
+write_to = "openroland_rw5/__version__.py"
 
 
 [tool.isort]
@@ -69,8 +68,8 @@ skip = [
     "spec_*.py", "*_spec.py",
     "specs_*.py", "*_specs.py",
 ]
-src_paths = "siscadro_rw5"
-known_first_party = "siscadro_rw5"
+src_paths = "openroland_rw5"
+known_first_party = "openroland_rw5"
 line_length = 80
 
 [tool.black]

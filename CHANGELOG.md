@@ -40,8 +40,8 @@
   Position`, `Entered Base HR`, `DT`/`TM`).
 - `Rw5Extractor` emits canonical survey points with `kind=base` for bases
   that have projected NEH.
-- Initial `siscadro-rw5` package: a low-level RW5 (Trimble/Carlson/SurvCE)
-  parser (`siscadro_rw5.parser`, `siscadro_rw5.models`) migrated and
+- Initial `openroland-rw5` package: a low-level RW5 (Trimble/Carlson/SurvCE)
+  parser (`openroland_rw5.parser`, `openroland_rw5.models`) migrated and
   refactored from `cad_server.support.rw5lib`, preserving English/Romanian
   label recognition, base/GPS observation grouping, and every previously
   supported record type (job/mode setup, base point, GPS/G0/G1/G2/G3/GS/GT,
@@ -50,7 +50,7 @@
   hard-coded paths of the original implementation and fixing a locale bug
   that previously skipped line processing whenever an explicit locale was
   supplied.
-- `Rw5Extractor`, the `siscadro_survey.extractors`-registered adapter that
+- `Rw5Extractor`, the `openroland_survey.extractors`-registered adapter that
   maps raw RW5 observations onto the canonical `SurveyPointRecord` model,
   plus the package-level `extract_points()`, `export_to_xlsx()`, and
   `export_to_database()` convenience wrappers.

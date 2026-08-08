@@ -1,4 +1,4 @@
-# siscadro-rw5
+# openroland-rw5
 
 RW5 (Trimble/Carlson/SurvCE) survey file parser and canonical extractor.
 
@@ -9,16 +9,16 @@ index.
 
 This package provides three layers of API surface:
 
-- `siscadro_rw5.parser`/`siscadro_rw5.models`: a low-level, format-specific
+- `openroland_rw5.parser`/`openroland_rw5.models`: a low-level, format-specific
   parser that turns RW5 text into raw `Rw5BasePoint`/`Rw5GpsPoint` records,
   independent of any canonical model, database, or CAD library.
-- `siscadro_rw5.extractor.Rw5Extractor`: the adapter that maps those raw
-  records onto `siscadro-survey`'s canonical `SurveyPointRecord` model, and
-  the package registered under the `siscadro_survey.extractors` entry-point
+- `openroland_rw5.extractor.Rw5Extractor`: the adapter that maps those raw
+  records onto `openroland-survey-core`'s canonical `SurveyPointRecord` model, and
+  the package registered under the `openroland_survey.extractors` entry-point
   group.
 - This package's `extract_points()`, `export_to_xlsx()`, and
   `export_to_database()`: direct convenience wrappers that delegate database
-  and workbook mechanics to `siscadro-survey`, so this package is usable
+  and workbook mechanics to `openroland-survey-core`, so this package is usable
   on its own without duplicating that logic.
 
 ## RW5 parsing
@@ -52,14 +52,14 @@ stakeout data, and similar) are preserved in `source_values`.
 ## Installation
 
 ```bash
-python -m pip install -e "D:\prog\__py_libs__\siscadro-survey[dev]"
+python -m pip install -e "D:\prog\openroland\openroland-survey-core[dev]"
 python -m pip install -e .
 ```
 
 ## Usage
 
 ```python
-from siscadro_rw5 import extract_points, export_to_xlsx, export_to_database
+from openroland_rw5 import extract_points, export_to_xlsx, export_to_database
 
 result = extract_points("job.rw5")
 export_to_xlsx("job.rw5")
@@ -75,7 +75,7 @@ dependencies:
 python -m venv venv
 venv\Scripts\activate
 python -m pip install --upgrade pip
-python -m pip install -e "D:\prog\__py_libs__\siscadro-survey[dev]"
+python -m pip install -e "D:\prog\openroland\openroland-survey-core[dev]"
 python -m pip install -e .[dev]
 ```
 

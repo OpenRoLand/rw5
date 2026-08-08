@@ -1,4 +1,4 @@
-"""Tests for :mod:`siscadro_rw5.parser`."""
+"""Tests for :mod:`openroland_rw5.parser`."""
 
 from __future__ import annotations
 
@@ -6,10 +6,10 @@ import datetime
 from pathlib import Path
 
 import pytest
-from siscadro_survey.records import IssueSeverity
+from openroland_survey.records import IssueSeverity
 
-from siscadro_rw5.models import Rw5GpsPoint
-from siscadro_rw5.parser import (
+from openroland_rw5.models import Rw5GpsPoint
+from openroland_rw5.parser import (
     Rw5Parser,
     leap_seconds,
     survce_angle_to_decimal,
@@ -894,7 +894,7 @@ class TestBaseConfigurationFixture:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         content = "\n".join(
             [
                 "JB,NMJOB,DT08-29-2020,TM09:00:00",
@@ -942,7 +942,7 @@ class TestSurvceAttributeAndGluedNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         content = "\n".join(
             [
                 "JB,NMJOB,DT08-29-2020,TM09:00:00",
@@ -1015,7 +1015,7 @@ class TestSurvXHeaderRecords:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
 
         Rw5Parser().parse_text(self._HEADER)
 
@@ -1132,7 +1132,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--RTK Method: Auto, Device: None, None",
@@ -1244,7 +1244,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--Equipment: Test",
@@ -1270,7 +1270,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--Equipment: Test",
@@ -1311,7 +1311,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "JB,NM1409BRASOV,DT09-14-2019,TM09:53:56",
@@ -1356,7 +1356,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--Equipment: Test",
@@ -1381,7 +1381,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--Equipment: Test",
@@ -1414,7 +1414,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--Equipment: Test",
@@ -1444,7 +1444,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--Equipment: STS2RP",
@@ -1477,7 +1477,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--Equipment: Test",
@@ -1504,7 +1504,7 @@ class TestSurvceJobHeaderNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
 
         Rw5Parser().parse_text(self._HEADER_NOTES)
 
@@ -1570,7 +1570,7 @@ class TestSouthCubeGnssObservationNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         content = "\n".join(
             [
                 "--Stonex Cube-a v6.3.20.2024.07.24",
@@ -1598,7 +1598,7 @@ class TestPointCodeNotes:
     ):
         import logging
 
-        caplog.set_level(logging.DEBUG, logger="siscadro_rw5.parser")
+        caplog.set_level(logging.DEBUG, logger="openroland_rw5.parser")
         text = "\n".join(
             [
                 "--Equipment: Test",

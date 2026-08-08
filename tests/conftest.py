@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for siscadro-rw5 tests.
+"""Shared pytest fixtures for openroland-rw5 tests.
 
 Every fixture file under ``tests/fixtures`` is synthetic; none of them
 contain customer names, coordinates, or files found on a personal data

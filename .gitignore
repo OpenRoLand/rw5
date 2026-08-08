@@ -79,7 +79,7 @@ output/
 output*.xlsx
 
 # setuptools_scm will (re)write this file at build/install time.
-siscadro_rw5/__version__.py
+openroland_rw5/__version__.py
 
 # IDE
 .vscode/*

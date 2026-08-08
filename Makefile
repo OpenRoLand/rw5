@@ -1,5 +1,5 @@
-MODULE_NAME ?= siscadro_rw5
-PACKAGE_NAME ?= siscadro-rw5
+MODULE_NAME ?= openroland_rw5
+PACKAGE_NAME ?= openroland-rw5
 ifeq ($(OS),Windows_NT)
     detected_OS := Windows
 else

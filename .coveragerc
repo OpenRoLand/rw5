@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = siscadro_rw5
+source = openroland_rw5
 
 [report]
 exclude_lines =
