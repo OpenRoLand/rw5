@@ -211,9 +211,7 @@ class TestExtract:
             "missing projected" in issue.message for issue in result.issues
         )
 
-    def test_base_only_gt_does_not_warn_missing_projected(
-        self, tmp_path: Path
-    ):
+    def test_base_only_gt_does_not_warn_missing_projected(self, tmp_path: Path):
         """Base ``GT`` must not invent a ``?`` stub that warns on extract."""
         path = tmp_path / "base_only_gt.rw5"
         path.write_text(
@@ -237,9 +235,7 @@ class TestExtract:
         assert not any(
             "missing projected" in issue.message for issue in result.issues
         )
-        assert not any(
-            issue.record_id == "?" for issue in result.issues
-        )
+        assert not any(issue.record_id == "?" for issue in result.issues)
 
 
 class TestBaseConfigurationExtract:

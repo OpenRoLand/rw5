@@ -78,9 +78,7 @@ _TRANSLATE_RE = re.compile(
 )
 
 #: Operator free-text note ``{PN}-{code}…`` (for example ``603-ST DRUM``).
-_POINT_CODE_NOTE_RE = re.compile(
-    r"^(?P<pn>\d+)-(?P<text>[A-Za-z].*)$"
-)
+_POINT_CODE_NOTE_RE = re.compile(r"^(?P<pn>\d+)-(?P<text>[A-Za-z].*)$")
 
 #: SurvCE base-setup ``SP North: …, SP East: …, Elv: …`` note.
 _SP_NORTH_NOTE_RE = re.compile(
@@ -340,9 +338,7 @@ class Rw5Parser:
     _pending_point_code_notes: Dict[str, Rw5PointCodeNote] = attrs.field(
         factory=dict, init=False
     )
-    _pending_point_used: Optional[str] = attrs.field(
-        default=None, init=False
-    )
+    _pending_point_used: Optional[str] = attrs.field(default=None, init=False)
     _pending_base_configured: bool = attrs.field(default=False, init=False)
     _pending_stk_source: Optional[str] = attrs.field(default=None, init=False)
     _pending_stk_labels: Optional[List[str]] = attrs.field(
@@ -597,7 +593,11 @@ class Rw5Parser:
         return False
 
     def _target_gps_for_observation_note(self) -> Optional[Rw5GpsPoint]:
-        """Return the rover that should receive an observation note, if known."""
+        """Return the rover that should receive an observation note.
+
+        Returns:
+            The known rover point, or ``None`` when the note is pending.
+        """
         base = self._current_base_point()
         if not base.points:
             return None
@@ -621,7 +621,7 @@ class Rw5Parser:
         self._pending_observation_notes.clear()
 
     def _flush_pending_local_time(self, gps: Rw5GpsPoint) -> None:
-        """Apply a buffered ``DT``/``TM`` stamp to a newly materialized rover."""
+        """Apply a buffered time stamp to a newly materialized rover."""
         if self._pending_local_time is None:
             return
         gps.local_time = self._pending_local_time
@@ -643,9 +643,7 @@ class Rw5Parser:
             return int(left_text) == int(right_text)
         return False
 
-    def _find_gps_by_name(
-        self, point_name: str
-    ) -> Optional[Rw5GpsPoint]:
+    def _find_gps_by_name(self, point_name: str) -> Optional[Rw5GpsPoint]:
         """Return the most recent GPS/SP point matching ``point_name``."""
         found: Optional[Rw5GpsPoint] = None
         for base in self.base_points:
@@ -715,9 +713,7 @@ class Rw5Parser:
         """Move unmatched ``{PN}-{code}…`` notes onto ``orphan_point_notes``."""
         if not self._pending_point_code_notes:
             return
-        self.orphan_point_notes.extend(
-            self._pending_point_code_notes.values()
-        )
+        self.orphan_point_notes.extend(self._pending_point_code_notes.values())
         self._pending_point_code_notes.clear()
 
     def _network_name(self) -> str:
@@ -1146,12 +1142,8 @@ class Rw5Parser:
         labels: Optional[List[str]],
         values: Optional[List[str]],
     ) -> Optional[Rw5GpsPoint]:
-        """Return the GPS/SP named in stakeout ``Stake Pt#`` / ``Design Pt#``."""
-        if (
-            labels is None
-            or values is None
-            or len(labels) != len(values)
-        ):
+        """Return the GPS/SP named by the stakeout point fields."""
+        if labels is None or values is None or len(labels) != len(values):
             return None
         mapping = dict(zip(labels, values))
         for key in ("Stake Pt#", "Design Pt#"):
@@ -1255,9 +1247,10 @@ class Rw5Parser:
                 return
             logger.debug("unrecognized note line: %s", line)
             return
-        if label == self._labels["RTK Method"] or label == ENGLISH_LABELS[
-            "RTK Method"
-        ]:
+        if (
+            label == self._labels["RTK Method"]
+            or label == ENGLISH_LABELS["RTK Method"]
+        ):
             # Unlike every other label, SurvCE repeats this label as the
             # sub-key of the first comma-separated part, so the handler
             # needs the whole line rather than just the value after
@@ -1300,12 +1293,8 @@ class Rw5Parser:
             "Antenna": self._set_antenna_note,
             "Attribute": self._set_attribute_note,
             "Antenna Type": self._set_antenna_type,
-            "GNSS Profile Tolerance PP": (
-                self._set_gnss_profile_tolerance_pp
-            ),
-            "GNSS Profile Tolerance RT": (
-                self._set_gnss_profile_tolerance_rt
-            ),
+            "GNSS Profile Tolerance PP": (self._set_gnss_profile_tolerance_pp),
+            "GNSS Profile Tolerance RT": (self._set_gnss_profile_tolerance_rt),
             "GNSS Statistics PP": self._set_gnss_statistics_pp,
             "GNSS Statistics RT": self._set_gnss_statistics_rt,
             "Instrument Selected": self._set_instrument_selected,
@@ -1822,7 +1811,7 @@ class Rw5Parser:
         point_name: Optional[str],
         base: Rw5BasePoint,
     ) -> Rw5GpsPoint:
-        """Return the rover point named ``point_name``, creating one if needed."""
+        """Return the named rover point, creating one when needed."""
         if point_name is not None:
             for point in reversed(base.points):
                 if str(point.name) == str(point_name):
@@ -2135,6 +2124,7 @@ def _to_reading_count(value: Optional[str]) -> Optional[int]:
     head = value.strip().split(None, 1)[0]
     return _to_int(head)
 
+
 def _strip_suffix(value: Optional[str]) -> Optional[str]:
     """Drop the trailing unit character SurvCE appends to some tags."""
     if value is None:
@@ -2142,9 +2132,7 @@ def _strip_suffix(value: Optional[str]) -> Optional[str]:
     return value[:-1]
 
 
-def _drop_pending_ctsd_wrap(
-    parser: "Rw5Parser", *, using_values: bool
-) -> None:
+def _drop_pending_ctsd_wrap(parser: "Rw5Parser", *, using_values: bool) -> None:
     """Remove SurvCE's trailing-comma wrap marker from a pending CTSD list.
 
     Args:
@@ -2190,9 +2178,7 @@ def _parse_moment(
     return None
 
 
-def _ordered_dt_formats(
-    text: str, formats: tuple[str, ...]
-) -> tuple[str, ...]:
+def _ordered_dt_formats(text: str, formats: tuple[str, ...]) -> tuple[str, ...]:
     """Prefer the unambiguous day/month order when one part is > 12.
 
     Ambiguous stamps (both parts ≤ 12) keep ``formats`` order so existing
@@ -2212,9 +2198,7 @@ def _ordered_dt_formats(
     return formats
 
 
-def _parse_dt_stamp(
-    text: str, formats: tuple[str, ...]
-) -> datetime.datetime:
+def _parse_dt_stamp(text: str, formats: tuple[str, ...]) -> datetime.datetime:
     """Parse a SurvCE ``DT…`` / ``DT…TM…`` stamp with US or European order.
 
     Args:

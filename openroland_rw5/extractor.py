@@ -2,9 +2,10 @@
 
 :class:`Rw5Extractor` is the adapter registered under the
 ``openroland_survey.extractors`` entry-point group. It maps the raw records
-produced by :mod:`openroland_rw5.parser` onto ``openroland-survey-core``'s canonical
-:class:`~openroland_survey.records.SurveyPointRecord` model; canonical-model
-decisions live only here, never in the low-level parser.
+produced by :mod:`openroland_rw5.parser` onto
+``openroland-survey-core``'s canonical
+:class:`~openroland_survey.records.SurveyPointRecord` model;
+canonical-model decisions live only here, never in the low-level parser.
 """
 
 from __future__ import annotations
@@ -113,9 +114,7 @@ def _job_metadata(parser: Rw5Parser) -> Dict[str, Any]:
     )
 
 
-def _is_base_station_observation(
-    gps: Rw5GpsPoint, base: Rw5BasePoint
-) -> bool:
+def _is_base_station_observation(gps: Rw5GpsPoint, base: Rw5BasePoint) -> bool:
     """Return whether ``gps`` is a base/VRS echo, not a rover survey point.
 
     SurvCE often writes a geographic-only ``GPS`` line whose ``PN`` is the
@@ -139,11 +138,7 @@ def _is_base_station_observation(
     ):
         return True
     base_name = base.name
-    if (
-        base_name is not None
-        and base_name != "?"
-        and name == str(base_name)
-    ):
+    if base_name is not None and base_name != "?" and name == str(base_name):
         return True
     if base.number is not None and name == str(base.number):
         # Same PN as BP without projected coords is a base echo.
@@ -365,8 +360,7 @@ def _source_values(
             stakeout_issue = ParseIssue(
                 source_path=source_path,
                 severity=IssueSeverity.WARNING,
-                message="point %r stakeout data skipped: %s"
-                % (gps.name, exc),
+                message="point %r stakeout data skipped: %s" % (gps.name, exc),
                 record_id=_record_id(gps),
             )
     return _drop_none(values), stakeout_issue

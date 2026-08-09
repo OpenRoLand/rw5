@@ -719,9 +719,7 @@ class TestJobDatetimeFormats:
 
         parser = Rw5Parser().parse_text(content)
 
-        assert parser.job_datetime == datetime.datetime(
-            2020, 8, 29, 10, 12, 18
-        )
+        assert parser.job_datetime == datetime.datetime(2020, 8, 29, 10, 12, 18)
 
     def test_parses_european_day_month_job_stamp(self):
         # SurvX European jobs write DD-MM-YYYY; month=29 must not win.
@@ -734,9 +732,7 @@ class TestJobDatetimeFormats:
 
         parser = Rw5Parser().parse_text(content)
 
-        assert parser.job_datetime == datetime.datetime(
-            2020, 8, 29, 10, 12, 18
-        )
+        assert parser.job_datetime == datetime.datetime(2020, 8, 29, 10, 12, 18)
 
     def test_ambiguous_stamp_keeps_us_order(self):
         # Both 04-08 and 08-04 are valid; prefer SurvCE US month-day.
@@ -808,9 +804,7 @@ class TestJobDatetimeFormats:
         assert by_name["143"].local_time == datetime.datetime(
             2015, 7, 9, 9, 39, 2
         )
-        assert by_name["143"].moment == datetime.datetime(
-            2015, 7, 9, 6, 39, 16
-        )
+        assert by_name["143"].moment == datetime.datetime(2015, 7, 9, 6, 39, 16)
         assert by_name["144"].local_time == datetime.datetime(
             2015, 7, 9, 9, 39, 44
         )
@@ -1054,9 +1048,7 @@ class TestBarcaniIntegration:
     def test_parses_european_job_datetime(self):
         parser = Rw5Parser().parse_file(BARCANI_RW5_PATH)
 
-        assert parser.job_datetime == datetime.datetime(
-            2020, 8, 29, 10, 12, 18
-        )
+        assert parser.job_datetime == datetime.datetime(2020, 8, 29, 10, 12, 18)
 
 
 class TestRecordsAndPointCount:
@@ -1337,9 +1329,7 @@ class TestSurvceJobHeaderNotes:
         assert parser.locale == "en"
         assert parser.date_creation == "09-14-2019 09:53:56"
         assert parser.date_last_modification == "09-15-2019 20:19:46"
-        assert parser.instrument_model == (
-            "CS15 Serial: 3497783 Name: 7783"
-        )
+        assert parser.instrument_model == ("CS15 Serial: 3497783 Name: 7783")
         assert parser.equipment == parser.instrument_model
         assert parser.survce_version == "GPS Survey 8.00"
         assert by_name["1101"].north == pytest.approx(485489.5281)
@@ -1372,8 +1362,7 @@ class TestSurvceJobHeaderNotes:
             "Calculate area of polyline 33,32,93,34: Area = 4.8734SM"
         )
         assert not any(
-            "unknown label" in record.getMessage()
-            for record in caplog.records
+            "unknown label" in record.getMessage() for record in caplog.records
         )
 
     def test_parses_sp_north_state_plane_base_config(
@@ -1454,9 +1443,9 @@ class TestSurvceJobHeaderNotes:
                 "OC,OP1,N 485104.52000,E 561942.01900,EL0.000,--",
                 "BK,OP1,BP99,BS335.0300,BC0.0000",
                 "BD,OP1,FP99,AR0.0000,ZE89.5323,SD39.870000,--",
-                '--Calculated: AR0°00\'00", HD39.445, Z0.000',
-                '--Measured: AR0°00\'00", HD39.870, Z0.098',
-                '--Delta: AR0°00\'00", HD0.425, Z0.098',
+                "--Calculated: AR0°00'00\", HD39.445, Z0.000",
+                "--Measured: AR0°00'00\", HD39.870, Z0.098",
+                "--Delta: AR0°00'00\", HD0.425, Z0.098",
                 "SS,OP1,FP100,AR330.1909,ZE89.4555,SD39.807000,--CC",
             ]
         )
@@ -1560,9 +1549,7 @@ class TestSouthCubeGnssObservationNotes:
         assert point.antenna_note.startswith("Desc=HX-CSX049A")
         assert point.initialization_time == "0,00s"
         assert point.instrument_selected == "Type=GNSS,profile=South,Model=H5"
-        assert point.gnss_profile_tolerance_rt.startswith(
-            "Solution=RTK FIXED"
-        )
+        assert point.gnss_profile_tolerance_rt.startswith("Solution=RTK FIXED")
         assert point.gnss_profile_tolerance_pp == "Not Active"
 
     def test_south_gnss_notes_do_not_emit_unknown_label_debug(

@@ -64,7 +64,7 @@ def base_configuration_path() -> Path:
 
 @pytest.fixture
 def offset_local_time_path() -> Path:
-    """Return the offset-shot fixture with ``DT``/``TM`` but no ``G0``/``GT``."""
+    """Return the offset fixture with time but no ``G0``/``GT`` rows."""
     return FIXTURES_DIR / "offset_local_time.rw5"
 
 

@@ -11,26 +11,26 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "attrs>=23.1,<25",
-    "arrow>=1.2,<2",
+    "attrs==26.1.0",
+    "arrow==1.4.0",
     "openroland-survey-core",
 ]
 
 
 [project.optional-dependencies]
 dev = [
-    "black",
-    "build",
-    "flake8",
-    "isort",
-    "mypy",
-    "pre-commit",
-    "pyproject-flake8",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest",
-    "twine",
-    "wheel",
+    "black==26.5.1",
+    "build==1.5.0",
+    "flake8==7.0.0",
+    "isort==8.0.1",
+    "mypy==2.3.0",
+    "pre-commit==4.6.1",
+    "pyproject-flake8==7.0.0",
+    "pytest-cov==7.1.0",
+    "pytest-mock==3.15.1",
+    "pytest==9.1.1",
+    "twine==7.0.0",
+    "wheel==0.47.0",
 ]
 
 
@@ -78,7 +78,7 @@ line_length = 80
 line-length = 80
 
 # Python versions that should be supported by Black's output
-target-version = ['py39', 'py310', 'py311']
+target-version = ['py39', 'py310', 'py311', 'py312', 'py313', 'py314']
 
 
 [tool.pytest.ini_options]
