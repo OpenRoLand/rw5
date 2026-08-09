@@ -4,6 +4,14 @@
 
 ### Added
 
+- ``make init``/``init-d`` now create and use a local ``venv`` (Python 3.14)
+  automatically instead of installing into whatever interpreter happens to
+  be active; delete ``venv/`` to force a rebuild.
+- Public GitHub Actions CI workflow (``.github/workflows/ci.yml``) running
+  lint, typecheck, and test.
+- Public release workflow (``.github/workflows/python-publish.yml``)
+  publishing to PyPI on a published GitHub release (needs the
+  ``PYPI_API_TOKEN`` repository secret).
 - Parse SurvCE operator ``{PN}-{code}…`` free-text notes (for example
   ``603-ST DRUM DREAPTA``): attach to matching GPS/SP ``comment``/``code``
   when empty; keep unmatched notes on ``Rw5Parser.orphan_point_notes``
