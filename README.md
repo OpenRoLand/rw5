@@ -2,8 +2,8 @@
 
 RW5 (Trimble/Carlson/SurvCE) survey file parser and canonical extractor.
 
-This is private, unpublished code. Do not upload it to a public package
-index.
+This reusable library is published under the MIT licence as part of the
+OpenRoLand survey interoperability stack.
 
 ## Status
 
@@ -50,6 +50,12 @@ instead of raising. RW5-specific values that have no canonical column
 stakeout data, and similar) are preserved in `source_values`.
 
 ## Installation
+
+```bash
+python -m pip install openroland-rw5
+```
+
+For development:
 
 ```bash
 python -m pip install -e "D:\prog\openroland\openroland-survey-core[dev]"

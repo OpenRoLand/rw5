@@ -13,7 +13,7 @@ classifiers = [
 dependencies = [
     "attrs==26.1.0",
     "arrow==1.4.0",
-    "openroland-survey-core",
+    "openroland-survey-core>=0.1.0",
 ]
 
 
@@ -113,3 +113,8 @@ exclude = [
     "specs_*.py", "*_specs.py",
 ]
 extend-ignore = "E203, E501, E704"
+
+[project.urls]
+Homepage = "https://github.com/OpenRoLand/openroland-rw5"
+Repository = "https://github.com/OpenRoLand/openroland-rw5"
+Issues = "https://github.com/OpenRoLand/openroland-rw5/issues"
