@@ -115,6 +115,6 @@ exclude = [
 extend-ignore = "E203, E501, E704"
 
 [project.urls]
-Homepage = "https://github.com/OpenRoLand/openroland-rw5"
-Repository = "https://github.com/OpenRoLand/openroland-rw5"
-Issues = "https://github.com/OpenRoLand/openroland-rw5/issues"
+Homepage = "https://github.com/OpenRoLand/rw5"
+Repository = "https://github.com/OpenRoLand/rw5"
+Issues = "https://github.com/OpenRoLand/rw5/issues"
